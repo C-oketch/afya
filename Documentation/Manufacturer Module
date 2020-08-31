@@ -1,0 +1,16 @@
+Manufacturer Module
+FacilityAdmin
+>Add Competition
+1. We add 5 Companies that compete with Manufacture.
+2. Manufacturer chooses 5 drugs to compete wit their drugs
+Manufacturer is allowed to coose maximum of 5 drugs of his.
+>Add Employees
+  Managers
+  SalesRepresantatives
+
+>Sales
+ Shows all manufacturer drug sales with various variations
+>Drug substitution
+Shows which drug was substituted against manufacturer drugs
+>Stock Level
+SHows the level of stocks in various pharmacies

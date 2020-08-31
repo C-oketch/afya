@@ -1,0 +1,16 @@
+USER MANAGEMENT
+superadmin(afyapepe admin)
+
+create other facilities admin:
+  >  Testcenter
+  >  Hospital
+  >  Pharmacy
+  >  Manufactures
+Insert to users table. With role as FacilityAdmin.
+Insert to role_user table. With role(table) id of FacilityAdmin and user_id from user table.
+Insert to facilityadmin table.
+
+>  Manufactures
+---Add employees
+
+Patients to register on web

@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Http\Requests;
+
+use DB;
+use App\Druglist;
+use App\Observation;
+use App\Symptom;
+use App\Chief;
+use Redirect;
+use Carbon\Carbon;
+use App\County;
+
+class AndroidPharmacyController extends Controller
+{
+   
+
+    public function showEmployees(Request $request)
+{
+  $user=DB::table('users')->where('email', $request->email)->first();
+  $id = $user->id;
+  $employees=DB::table('manufacturers_employees')
+  ->join('users','users.id','=','manufacturers_employees.users_id')
+  ->select('users.*','manufacturers_employees.job as job','manufacturers_employees.region')
+  ->where('manufacturers_employees.manu_id',$id)
+  ->get();
+  return json_encode($employees);
+
+}
+
+public function showPharmadmininventoryreport(Request $request)
+{
+
+  $user=DB::table('users')->where('email', $request->email)->first();
+  $id = $user->id;
+
+  $reports = DB::table('prescription_filled_status')
+              ->join('prescription_details', 'prescription_filled_status.presc_details_id', '=', 'prescription_details.id')
+              ->join('druglists', 'prescription_details.drug_id', '=', 'druglists.id')
+              ->leftJoin('inventory', 'inventory.drug_id', '=', 'druglists.id')
+              ->leftJoin('inventory_updates', 'inventory_updates.drug_id', '=', 'inventory.drug_id')
+              ->leftJoin('substitute_presc_details', 'substitute_presc_details.id', '=', 'prescription_filled_status.substitute_presc_id')
+              ->select('prescription_filled_status.id','prescription_filled_status.quantity',
+              'inventory.quantity AS inv_qty', 'inventory_updates.quantity AS inv_qty2',
+              'druglists.drugname', 'prescription_filled_status.available')
+              ->get();
+
+      return json_encode($reports);
+}
+
+}

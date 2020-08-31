@@ -1,0 +1,440 @@
+<?php
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use DB;
+use App\Http\Requests;
+use App\Doctor;
+use Carbon\Carbon;
+use Auth;
+use App\Patient;
+use App\Facility;
+use PDF;
+use Storage;
+class BPatientController extends Controller
+{
+
+protected $id = 1;
+
+  public function authenticate(Request $request) {
+      $phone = $request->input("phone");
+      $pin = $request->input("pin");
+      $data;
+
+//Include weight of patient in the data
+      //Check from database
+      if($phone == "0700460888" && $pin == "4444") {
+        $patient=DB::table('afya_users')->where('id',$this->id)->first();
+        $nextkin=DB::table('kin_details')
+        ->join('kin','kin.id','=','kin_details.relation')
+        ->select('kin_details.kin_name','kin_details.phone_of_kin',
+          'kin.relation')->where('kin_details.afya_user_id',$patient->id)->first();
+
+        $data = array(
+          'id' => $patient->id,
+          'firstName' => $patient->firstname,
+          'secondName' => $patient->secondName,
+          'pNumber' => $patient->msisdn,
+          'bloodType' => $patient->blood_type,
+          'email' => $patient->email,
+          'gender' => $patient->gender == 1 ? "Male" : "Female",
+          'age' => $patient->age,
+          'status' => $patient->status,
+          'nationalId' => $patient->nationalId,
+          'nhif' => $patient->nhif,
+          'county' => $patient->pob,
+          'constituency' => $patient->constituency,
+          'kin' => $nextkin,
+          'weight' => 79, // use real weight
+          'auth' => true
+        );
+      }else {
+        $data = array(
+          'auth' => false
+        );
+      }
+
+      return json_encode($data);
+
+  }
+
+  public function signUp(Request $request) {
+    $jsonString = $request->input("json");//date name phone pin
+    return json_encode($jsonString);
+  }
+
+  public function updateSteps(Request $request) {
+    $steps = $request->input("steps");
+    return json_encode($steps);
+  }
+
+  public function getPreviousChat(Request $request) {
+    $data = array(
+      array(
+        'rec' => 'Edward Oirere',
+        'email' => 'email',
+        'message' => "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+      ),
+      array(
+        'rec' => 'Oirere Jr',
+        'email' => 'email',
+        'message' => "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+      ),
+      array(
+        'rec' => 'Oirere Jr',
+        'email' => 'email',
+        'message' => "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+      )
+    );
+    return json_encode($data);
+  }
+
+  public function sendMessage(Request $request) {
+    $user = $request->input("user");
+    $message = $request->input('message');
+
+    try {
+        if($request->hasFile('file')){
+            $photo = $request->file;
+            $photo->move("files", uniqid());
+            $reply = 'File Uploaded';
+        }else {
+            $reply = 'File Not Found';
+        }
+    }catch (Exception $e){
+        $reply = $e;
+    }
+
+    return json_encode($reply);
+  }
+
+  public function sendTextMessage(Request $request) {
+    $user = $request->input("user");
+    $message = $request->input('message');
+
+    return json_encode($message);
+  }
+
+  public function makeVisit(Request $request) {
+     $facility = $request->input("facility");
+     $pin = $request->input("pin");
+     $data;
+     if($pin == "4444") {
+       $data = true;
+     }else {
+       $data = false;
+     }
+
+     return json_encode($data);
+
+  }
+
+  public function getNotifications() {
+    //Include doctors message
+    //Include reminders(check ups .....)
+  }
+
+  public function getAppointments() {
+    $data = array();
+    for ($i=0; $i < 5; $i++) {
+      array_push($data, array(
+           "doctor" => "Dr Martin Kibor",
+           "title" => "Basic Physicist",
+           "time" => "12-10-17 8:55",
+           "position" => "Doctor"
+       ));
+    }
+    return json_encode($data);
+  }
+
+  public function getCurrentAppointment()
+  {
+    $data = array(
+      'date' => "September, 21",
+      'name' => "Dr. Joe Doe",
+      'next' => true
+    );
+
+    return json_encode($data);
+
+  }
+
+  public function getAppointment()
+  {
+    # code...
+    //details of one appointment - uses appointment ID
+  }
+
+  public function getFacilities()
+  {
+    # code...
+  }
+
+  public function selfReport(Request $request)
+  {
+     $type = $request->input('type');
+     $value = $request->input('value');
+  }
+
+  public function getDependents(Request $request)
+  {
+      $data = array();
+      for ($i = 0; $i < 5; $i++) {
+        array_push($data, array(
+          'dob' => "12-12-17",
+          'gender' => "Male",
+          'name' => "Edward",
+          'pob' => "Kenya",
+          'relationship' => "Brother"
+        ));
+      }
+      return json_encode($data);
+  }
+
+  public function allergies(Request $request){
+     $data;
+    //  $user=DB::table('users')->where('email', $request->email)->first();
+    //  $patient=DB::table('afya_users')->where('users_id',$user->id)->first();
+    $patient=DB::table('afya_users')->where('id',$this->id)->first();
+    $allergies=DB::table('afya_users_allergy')  ->Join('allergies_type','allergies_type.id','=','afya_users_allergy.allergies_type_id')
+  ->Join('allergies','allergies.id','=','allergies_type.allergies_id')
+  ->Select('allergies_type.name','allergies.name as Allergy','afya_users_allergy.created_at')
+  ->Where('afya_users_allergy.afya_user_id','=',$patient->id)
+  ->get();
+
+  $data['allergies']= $allergies;
+   return json_encode($allergies);
+  }
+
+ public function vaccination(Request $request){
+   $data;
+   $results = array();
+    //  $user=DB::table('users')->where('email', $request->email)->first();
+    //  $patient=DB::table('afya_users')->where('users_id',$user->id)->first();
+    $id = Auth::id();
+
+     $patient=DB::table('afya_users')->where('users_id',$id)->first();
+
+    //  $vaccines=DB::table('vaccination')->
+    //  join('vaccine','vaccine.id','=','vaccination.diseaseId')->
+    //  select('vaccine.*','vaccination.*')
+    //  ->where('vaccination.userId',$patient->id)
+    //  ->where('vaccination.yes','=','yes')->
+    //  Orderby('yesdate','desc')->get();
+
+     $vaccines=DB::table('vaccination')->
+     join('vaccine','vaccine.id','=','vaccination.diseaseId')->
+     select('vaccine.*','vaccination.*')
+     ->where('vaccination.userId',$patient->id)
+     ->where('vaccination.yes','=','yes')->
+     Orderby('yesdate','desc')->get();
+
+     foreach($vaccines as $vaccine) {
+       $data = array(
+         'antigen' => $vaccine->antigen,
+         'name' => $vaccine->vaccine_name,
+         'location' => 'Judes Huruma Community Health Services',
+         'date' => date('d -m- Y', strtotime($vaccine->yesdate))
+       );
+       array_push($results, $data);
+    }
+
+   return json_encode($results);
+
+ }
+
+ public function triages(Request $request){
+   $data;
+      // $user=DB::table('users')->where('email', $request->email)->first();
+      // $patient=DB::table('afya_users')->where('users_id',$user->id)->first();
+       $patient=DB::table('afya_users')->where('id',$this->id)->first();
+
+   $triages=DB::table('triage_details')->join('appointments','appointments.id','=','triage_details.appointment_id')
+                       ->select('triage_details.*')->where('appointments.afya_user_id',$patient->id)->Orderby('triage_details.updated_at','desc')->get();
+
+
+    $data['triages'] =$triages;
+
+   return json_encode($triages);
+
+ }
+
+ public function tests(Request $request){
+ $results = array();
+    // $user=DB::table('users')->where('email', $request->email)->first();
+    // $patient=DB::table('afya_users')->where('users_id',$user->id)->first();
+
+     $patient=DB::table('afya_users')->where('id',$this->id)->first();
+
+     $tests=DB::table('appointments')
+ ->join('patient_test','appointments.id','=','patient_test.appointment_id')
+ ->join('patient_test_details','patient_test.id','=','patient_test_details.patient_test_id')
+ ->join('tests','tests.id','=','patient_test_details.tests_reccommended')
+ ->where('appointments.afya_user_id',1)
+ ->get();
+
+   foreach ($tests as $test) {
+     $labtest=DB::table('tests')->where('id',$test->tests_reccommended)->first();
+    $testname=DB::table('test_categories')->where('id',12)->first();
+    $user=DB::table('doctors')->where('id',7333)->first();
+    $data = array(
+      'date' => $test->created_at,
+      'type' => $testname->name,
+      'test' => $labtest->name,
+      'doctor' => $user->name,
+      'status' => $status=$test->test_status == 0 ? "Not Done" : "Done"
+    );
+    array_push($results, $data);
+   }
+
+ return json_encode($results);
+
+ }
+
+ public function selfReports(Request $request) {
+   $data = array();
+   for ($i=0; $i < 5; $i++) {
+     array_push($data, array(
+          "date" => "12.22.12",
+          "temp" => 23,
+          "weight" => 89,
+          "b_p" => 34,
+          "fasting_sugars" => 33,
+          "b_m_sugars" => 33,
+          "post_p_sugars" => 33
+      ));
+   }
+   return json_encode($data);
+ }
+
+ public function admits(Request $request){
+    $data;
+    $results = array();
+       $id = 3;
+      //  $user=DB::table('users')->where('email', $request->email)->first();
+      //  $patient=DB::table('afya_users')->where('users_id',$user->id)->first();
+       $patient=DB::table('afya_users')->where('id',$this->id)->first();
+
+    $admits=DB::table('patient_admitted')
+    ->join('appointments','appointments.id','=','patient_admitted.appointment_id')
+    ->join('prescriptions','prescriptions.appointment_id','=','appointments.id')
+    ->join('prescription_details','prescription_details.presc_id','=','prescriptions.id')
+    ->Join('diseases','diseases.id','=','prescription_details.diagnosis')
+    ->Join('triage_details','triage_details.appointment_id','=','appointments.id')
+    ->select('patient_admitted.*','diseases.name as name','triage_details.chief_compliant as triage')
+    ->where('appointments.afya_user_id',$patient->id)
+    ->get();
+
+    foreach($admits as $admit) {
+      $data = array(
+        'admitted' => $admit->date_admitted,
+        'discharged' => $admit->date_discharged,
+        'triage' => $admit->triage,
+        'name' => $admit->name,
+        'condition' => $admit->condition
+      );
+      array_push($data, $results);
+     }
+
+return json_encode($results);
+ }
+
+ public function expenditures(Request $request){
+    $data = array();
+      $id = 3;
+      // $user=DB::table('users')->where('email', $request->email)->first();
+      // $patient=DB::table('afya_users')->where('users_id',$user->id)->first();
+       $patient=DB::table('afya_users')->where('id',$this->id)->first();
+
+   $expenditures = DB::table('payments')
+   ->join('appointments', 'appointments.id', '=', 'payments.appointment_id')
+   ->join('afya_users', 'afya_users.id', '=', 'appointments.afya_user_id')
+   ->join('facilities', 'facilities.FacilityCode', '=', 'appointments.facility_id')
+   ->select('afya_users.*', 'facilities.*', 'payments.*')
+   ->where('afya_users.id', '=', $patient->id)
+   ->get();
+
+    foreach ($expenditures as $expenditure) {
+      array_push($data, array(
+        'date' => $expenditure->created_at,
+        'facility' => $expenditure->FacilityName,
+        'amount' => $expenditure->amount,
+        'patient' => $patient->firstname . " " . $patient->secondName
+      ));
+    }
+
+    return json_encode($data);
+
+ }
+
+   //$expenditures=DB::table('consultation_fees')->where('afyauser_id',$patient->id)->get();
+public function patientHistory(Request $request)
+{
+  $data;
+  $results  = array();
+    $id = 1;
+
+    $patient=DB::table('afya_users')->where('id',$this->id)->first();
+
+   $triages=DB::table('triage_details')
+   ->join('appointments','appointments.id','=','triage_details.appointment_id')
+   ->select('triage_details.*')
+   ->where('appointments.afya_user_id',$patient->id)
+   ->Orderby('triage_details.updated_at','desc')
+   ->get();
+
+   foreach($triages as $triage) {
+
+     $data = array(
+       'date' => $triage->updated_at,
+       'weight' => $triage->current_weight,
+       'height' => $triage->current_height,
+       'bmi' => $triage->current_weight/($triage->current_height*$triage->current_height),
+       'temperature' => $triage->temperature,
+       'sbp' => $triage->systolic_bp,
+       'dbp' => $triage->diastolic_bp,
+       'complaint' => $triage->chief_compliant
+     );
+     array_push($data, $results);
+ }
+
+   return json_encode($results);
+}
+
+public function patientPrescriptions(Request $request)
+{
+$data;
+$results  = array();
+$id = 1;
+
+$patient=DB::table('afya_users')->where('id',$this->id)->first();
+
+$prescs=DB::table('prescription_details')
+->Join('diseases','diseases.id','=','prescription_details.diagnosis')
+->join('druglists','druglists.id','=','prescription_details.drug_id')
+->join('prescriptions','prescriptions.id','=','prescription_details.presc_id')
+->join('appointments','appointments.id','=','prescriptions.appointment_id')
+->select('prescription_details.*','diseases.name as name','druglists.drugname as drugname','appointments.doc_id as doc')
+->where('appointments.afya_user_id',3)
+->get();
+
+foreach($prescs as $presc) {
+$doc=DB::table('doctors')->where('id',$presc->doc)->first();
+$data = array(
+'date' => $presc->created_at,
+'diagnosis' => $presc->name,
+'state' => $presc->state,
+'drug' => $presc->drugname,
+'doctor' => $presc->name
+);
+
+array_push($data, $results);
+
+}
+
+return json_encode($prescs);
+
+}
+
+
+  }
